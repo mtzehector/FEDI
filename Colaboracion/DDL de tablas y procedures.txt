@@ -1,0 +1,903 @@
+-- FEDI.dbo.cat_DocumentoEstatus definition
+
+-- Drop table
+
+-- DROP TABLE FEDI.dbo.cat_DocumentoEstatus;
+
+CREATE TABLE FEDI.dbo.cat_DocumentoEstatus (
+	DocumentoEstatusID int NOT NULL,
+	DocumentoEstatus nvarchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	CONSTRAINT PK_cat_DocumentoEstatus PRIMARY KEY (DocumentoEstatusID)
+);
+
+
+-- FEDI.dbo.cat_TipoFirma definition
+
+-- Drop table
+
+-- DROP TABLE FEDI.dbo.cat_TipoFirma;
+
+CREATE TABLE FEDI.dbo.cat_TipoFirma (
+	TipoFirmaID int NOT NULL,
+	TipoFirma nvarchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	CONSTRAINT PK_cat_TipoFirma PRIMARY KEY (TipoFirmaID)
+);
+
+-- FEDI.dbo.cat_Usuarios definition
+
+-- Drop table
+
+-- DROP TABLE FEDI.dbo.cat_Usuarios;
+
+CREATE TABLE FEDI.dbo.cat_Usuarios (
+	UsuarioID nvarchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	Nombre nvarchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	ApellidoPaterno nvarchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	ApellidoMaterno nvarchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	Logueo int NULL,
+	CONSTRAINT PK_cat_Usuarios PRIMARY KEY (UsuarioID)
+);
+
+-- FEDI.dbo.pruebas definition
+
+-- Drop table
+
+-- DROP TABLE FEDI.dbo.pruebas;
+
+CREATE TABLE FEDI.dbo.pruebas (
+	DocumentoEstatusID int NULL,
+	Orientacion nvarchar(10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+);
+
+-- FEDI.dbo.sysdiagrams definition
+
+-- Drop table
+
+-- DROP TABLE FEDI.dbo.sysdiagrams;
+
+CREATE TABLE FEDI.dbo.sysdiagrams (
+	name sysname COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	principal_id int NOT NULL,
+	diagram_id int IDENTITY(1,1) NOT NULL,
+	version int NULL,
+	definition varbinary(MAX) NULL,
+	CONSTRAINT PK__sysdiagr__C2B05B615C7260AA PRIMARY KEY (diagram_id),
+	CONSTRAINT UK_principal_name UNIQUE (principal_id,name)
+);
+
+-- FEDI.dbo.tbl_Documentos definition
+
+-- Drop table
+
+-- DROP TABLE FEDI.dbo.tbl_Documentos;
+
+CREATE TABLE FEDI.dbo.tbl_Documentos (
+	DocumentoID int IDENTITY(1,1) NOT NULL,
+	NombreDocumento nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	RutaDocumento nvarchar(200) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	FechaVigencia date NOT NULL,
+	FechaHoraCarga datetime2(3) NOT NULL,
+	DocumentoEstatusID int NOT NULL,
+	TotalPaginas int NOT NULL,
+	UsuarioID nvarchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	FechaEliminacion date NULL,
+	TipoFirmaID int NOT NULL,
+	TamanoDocumento int NOT NULL,
+	Firmando nvarchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	HashDocumento nvarchar(200) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	Orientacion nvarchar(10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	SistemaOrigen nvarchar(10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	CONSTRAINT PK_tbl_Documentos PRIMARY KEY (DocumentoID)
+);
+
+
+-- FEDI.dbo.tbl_Documentos foreign keys
+
+ALTER TABLE FEDI.dbo.tbl_Documentos ADD CONSTRAINT FK_tbl_Documentos_cat_DocumentoEstatus FOREIGN KEY (DocumentoEstatusID) REFERENCES FEDI.dbo.cat_DocumentoEstatus(DocumentoEstatusID);
+ALTER TABLE FEDI.dbo.tbl_Documentos ADD CONSTRAINT FK_tbl_Documentos_cat_TipoFirma FOREIGN KEY (TipoFirmaID) REFERENCES FEDI.dbo.cat_TipoFirma(TipoFirmaID);
+ALTER TABLE FEDI.dbo.tbl_Documentos ADD CONSTRAINT FK_tbl_Documentos_cat_Usuarios FOREIGN KEY (UsuarioID) REFERENCES FEDI.dbo.cat_Usuarios(UsuarioID);
+
+-- FEDI.dbo.tbl_Firmantes definition
+
+-- Drop table
+
+-- DROP TABLE FEDI.dbo.tbl_Firmantes;
+
+CREATE TABLE FEDI.dbo.tbl_Firmantes (
+	FirmanteID int IDENTITY(1,1) NOT NULL,
+	FechaFirma date NULL,
+	HoraFirma datetime NULL,
+	Hash nvarchar(200) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	Posicion int NULL,
+	UsuarioID nvarchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	DocumentoID int NOT NULL,
+	EsObservador int NULL,
+	UnidadAdministrativa nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	CONSTRAINT PK_tbl_Firmantes PRIMARY KEY (FirmanteID)
+);
+
+
+-- FEDI.dbo.tbl_Firmantes foreign keys
+
+ALTER TABLE FEDI.dbo.tbl_Firmantes ADD CONSTRAINT FK_tbl_Firmantes_cat_Usuarios FOREIGN KEY (UsuarioID) REFERENCES FEDI.dbo.cat_Usuarios(UsuarioID);
+ALTER TABLE FEDI.dbo.tbl_Firmantes ADD CONSTRAINT FK_tbl_Firmantes_tbl_Documentos FOREIGN KEY (DocumentoID) REFERENCES FEDI.dbo.tbl_Documentos(DocumentoID) ON DELETE CASCADE;
+
+-- PROCEDURES
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	Guarda los datos del documento junto con sus firmantes
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_CARGAR_DOCUMENTO]
+	@NombreDocumento	nvarchar(100),
+	@RutaDocumento		nvarchar(100),
+	@FechaVigencia		nvarchar(10),
+	@FechaHoraCarga		nvarchar(19),
+	@TotalPaginas		int,
+	@UsuarioID			nvarchar(50),
+	@TipoFirmaID		int,
+	@TamanoDocumento	int,
+	@Firmantes			nvarchar(MAX),
+	@SistemaOrigen	    nvarchar(10),
+	@DocumentoID		int OUTPUT,
+	@Error_Code			int OUTPUT,
+	@Error_Desc			nvarchar(200) OUTPUT
+AS
+
+DECLARE @Firmante		NVARCHAR(MAX)
+DECLARE @Posicion		INTEGER
+
+BEGIN
+
+	SET NOCOUNT ON;
+	SET LANGUAGE SPANISH;
+	SET XACT_ABORT ON;
+
+	BEGIN TRY
+
+		IF @NombreDocumento IS NULL OR @NombreDocumento = ''
+		BEGIN
+			RAISERROR ('El nombre del documento es requerido.', 16, 1);
+		END
+		/*
+		IF EXISTS(SELECT * FROM tbl_Documentos WHERE NombreDocumento = @NombreDocumento AND FechaEliminacion IS NULL AND UsuarioID = @UsuarioID)
+		BEGIN
+			RAISERROR ('El nombre del documento ya existe.', 16, 1);
+		END
+		*/
+		BEGIN TRANSACTION;
+
+		INSERT INTO TBL_DOCUMENTOS(NombreDocumento, RutaDocumento, FechaVigencia, FechaHoraCarga, DocumentoEstatusID, TotalPaginas, UsuarioID, FechaEliminacion, TipoFirmaID, TamanoDocumento, SistemaOrigen)
+		VALUES(@NombreDocumento, @RutaDocumento, CAST(@FechaVigencia AS DATETIME), CAST (@FechaHoraCarga AS DATETIME), 1/*Pendiente*/, @TotalPaginas, @UsuarioID, null/*dateadd(MONTH, 3, SYSDATETIME())*/, @TipoFirmaID, @TamanoDocumento, @SistemaOrigen)
+
+		SELECT @DocumentoID = SCOPE_IDENTITY();
+
+		DECLARE cFirmantes CURSOR FOR 
+		SELECT Firmante, Posicion
+		FROM OPENJSON ( @Firmantes )  
+		WITH (   
+			Firmante		VARCHAR(50)		'$.idUsuario',
+			Posicion		INTEGER			'$.posicion'
+		)
+
+		OPEN cFirmantes  
+		FETCH NEXT FROM cFirmantes INTO @Firmante, @Posicion
+		WHILE @@FETCH_STATUS = 0  
+		BEGIN  
+			IF @TipoFirmaID = 2 --Si es concurrente no guardrá posición
+			BEGIN
+				SET @Posicion = null;
+			END;
+			ELSE IF @TipoFirmaID = 1 -- Es secuencial
+			BEGIN
+				IF @Posicion is null
+				BEGIN
+					RAISERROR ('Es necesaria la posicion del firmante al ser tipo de documento secuencial.', 16, 1);
+				END
+			END;
+
+			INSERT INTO TBL_FIRMANTES(FechaFirma, HoraFirma, Posicion, UsuarioID, DocumentoID)
+			VALUES(null, null, @Posicion, @Firmante, @DocumentoID)
+
+			FETCH NEXT FROM cFirmantes INTO @Firmante, @Posicion
+		END;
+
+		COMMIT TRANSACTION;
+
+		SET @Error_Code = 0
+
+	END TRY
+
+	BEGIN CATCH
+		 
+	-- Transaction uncommittable
+		IF (XACT_STATE()) = -1
+		BEGIN
+		  ROLLBACK TRANSACTION;
+		END;
+
+	-- Transaction committable
+		IF (XACT_STATE()) = 1
+		BEGIN
+		  COMMIT TRANSACTION;
+		END;
+
+		SET @Error_Code = ERROR_NUMBER();
+		SET @Error_Desc = ERROR_MESSAGE();
+
+	END CATCH
+
+	BEGIN TRY
+        --limpiamos el cursor             
+        CLOSE cFirmantes
+        DEALLOCATE cFirmantes                                  
+    END TRY
+
+    BEGIN CATCH
+        --no hacemos nada
+    END CATCH
+END;
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	Guarda los datos del documento junto con sus firmantes
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_CARGAR_DOCUMENTOS]
+	@Documentos			nvarchar(MAX),
+	@DocumentosID		nvarchar(MAX) OUTPUT,
+	@Error_Code			int OUTPUT,
+	@Error_Desc			nvarchar(200) OUTPUT
+AS
+
+DECLARE @NombreDocumento	nvarchar(100)
+DECLARE @SistemaOrigen      nvarchar(10)
+DECLARE @RutaDocumento		nvarchar(100)
+DECLARE @FechaVigencia		nvarchar(10)
+DECLARE @FechaHoraCarga		nvarchar(23)
+DECLARE @TotalPaginas		int
+DECLARE @UsuarioID			nvarchar(50)
+DECLARE @TipoFirmaID		int
+DECLARE @TamanoDocumento	int
+DECLARE @HashDocumento		nvarchar(200)
+DECLARE @Orientacion		nvarchar(10)
+DECLARE @listaFirmantes		nvarchar(MAX)
+DECLARE @listaObservadores	nvarchar(MAX)
+DECLARE @Firmante			NVARCHAR(50)
+DECLARE @Observador			NVARCHAR(50)
+DECLARE @Posicion			INTEGER
+DECLARE @UnidadAdm			NVARCHAR(100)
+DECLARE @DocumentoID		int
+DECLARE @listOfIDs			table (id int);
+
+BEGIN
+
+	SET NOCOUNT ON;
+	SET LANGUAGE SPANISH;
+	SET XACT_ABORT ON;
+
+	BEGIN TRY
+
+		BEGIN TRANSACTION;
+
+		DECLARE cDocumentos CURSOR FOR
+		SELECT NombreDocumento, SistemaOrigen, RutaDocumento, FechaVigencia, FechaHoraCarga, TotalPaginas, UsuarioID, TipoFirmaID, TamanoDocumento, HashDocumento, Orientacion, listaFirmantes, listaObservadores
+		FROM OPENJSON ( @Documentos )  
+		WITH (   
+			NombreDocumento		VARCHAR(100)		'$.nombreDocumento',
+			SistemaOrigen		VARCHAR(10)		    '$.sistemaOrigen',
+			RutaDocumento		VARCHAR(100)		'$.rutaDocumento',
+			FechaVigencia		VARCHAR(10)			'$.fechaVigencia',
+			FechaHoraCarga		VARCHAR(23)			'$.fechaHoraCarga',
+			TotalPaginas		int					'$.totalPaginas',
+			UsuarioID			VARCHAR(50)			'$.idUsuario',
+			TipoFirmaID			int					'$.idTipoFirma',
+			TamanoDocumento		int					'$.tamanoDocumento',
+			HashDocumento		VARCHAR(200)		'$.hashDocumento',
+			Orientacion			VARCHAR(10)			'$.orientacion',
+			[listaFirmantes]	NVARCHAR(MAX)		AS JSON,
+			[listaObservadores]	NVARCHAR(MAX)		AS JSON
+		)
+		
+		OPEN cDocumentos
+		FETCH NEXT FROM cDocumentos INTO @NombreDocumento, @sistemaOrigen, @RutaDocumento, @FechaVigencia, @FechaHoraCarga, @TotalPaginas, @UsuarioID, @TipoFirmaID, @TamanoDocumento, @HashDocumento, @Orientacion, @listaFirmantes, @listaObservadores 
+		WHILE @@FETCH_STATUS = 0
+		
+		BEGIN
+			IF @NombreDocumento IS NULL OR @NombreDocumento = ''
+			BEGIN
+				RAISERROR ('El nombre del documento es requerido.', 16, 1);
+			END
+			/*
+			IF EXISTS(SELECT * FROM tbl_Documentos WHERE NombreDocumento = @NombreDocumento AND FechaEliminacion IS NULL AND UsuarioID = @UsuarioID)
+			BEGIN
+				RAISERROR ('El nombre del documento ya existe.', 16, 1);
+			END
+			*/
+			INSERT INTO TBL_DOCUMENTOS(NombreDocumento, SistemaOrigen, RutaDocumento, FechaVigencia, FechaHoraCarga, DocumentoEstatusID, TotalPaginas, UsuarioID, FechaEliminacion, TipoFirmaID, TamanoDocumento, HashDocumento, Orientacion)
+			VALUES(@NombreDocumento, @SistemaOrigen, @RutaDocumento, CAST(@FechaVigencia AS DATETIME), CAST (@FechaHoraCarga AS DATETIME2(3)), 1/*Pendiente*/, @TotalPaginas, @UsuarioID, null/*dateadd(MONTH, 3, SYSDATETIME())*/, @TipoFirmaID, @TamanoDocumento, @HashDocumento, @Orientacion)
+
+			SELECT @DocumentoID = SCOPE_IDENTITY();
+
+			INSERT @listOfIDs(id) values(@DocumentoID);
+
+			DECLARE cFirmantes CURSOR FOR 
+			SELECT Firmante, Posicion, UnidadAdm
+			FROM OPENJSON ( @listaFirmantes )  
+			WITH (
+				Firmante		VARCHAR(50)		'$.idUsuario',
+				Posicion		INTEGER			'$.posicion',
+				UnidadAdm		VARCHAR(100)	'$.unidadAdministrativa'
+			)
+			
+			OPEN cFirmantes  
+			FETCH NEXT FROM cFirmantes INTO @Firmante, @Posicion, @UnidadAdm
+			WHILE @@FETCH_STATUS = 0  
+			BEGIN  
+				IF @TipoFirmaID = 2 --Si es concurrente no guardrá posición
+				BEGIN
+					SET @Posicion = null;
+				END;
+				ELSE IF @TipoFirmaID = 1 -- Es secuencial
+				BEGIN
+					IF @Posicion is null
+					BEGIN
+						RAISERROR ('Es necesaria la posicion del firmante al ser tipo de documento secuencial.', 16, 1);
+					END
+				END;
+
+				INSERT INTO TBL_FIRMANTES(FechaFirma, HoraFirma, Posicion, UsuarioID, DocumentoID, UnidadAdministrativa)
+				VALUES(null, null, @Posicion, @Firmante, @DocumentoID, @UnidadAdm)
+
+				FETCH NEXT FROM cFirmantes INTO @Firmante, @Posicion, @UnidadAdm
+			END;
+
+			CLOSE cFirmantes
+			DEALLOCATE cFirmantes
+			
+			DECLARE cObservadores CURSOR FOR 
+			SELECT Observador, UnidadAdm
+			FROM OPENJSON ( @listaObservadores )  
+			WITH (
+				Observador		VARCHAR(50)		'$.idUsuario',
+				UnidadAdm		VARCHAR(100)	'$.unidadAdministrativa'
+			)
+
+			OPEN cObservadores
+			FETCH NEXT FROM cObservadores INTO @Observador, @UnidadAdm
+			WHILE @@FETCH_STATUS = 0  
+			BEGIN  
+				INSERT INTO TBL_FIRMANTES(FechaFirma, HoraFirma, Posicion, UsuarioID, DocumentoID, EsObservador, UnidadAdministrativa)
+				VALUES(null, null, null, @Observador, @DocumentoID, 1, @UnidadAdm)
+
+				FETCH NEXT FROM cObservadores INTO @Observador, @UnidadAdm
+			END;
+
+			CLOSE cObservadores
+			DEALLOCATE cObservadores
+
+			FETCH NEXT FROM cDocumentos INTO @NombreDocumento, @SistemaOrigen, @RutaDocumento, @FechaVigencia, @FechaHoraCarga, @TotalPaginas, @UsuarioID, @TipoFirmaID, @TamanoDocumento, @HashDocumento, @Orientacion, @listaFirmantes, @listaObservadores
+		
+		END;
+
+		SET @Error_Code = 0
+		COMMIT TRANSACTION;
+
+		SET @DocumentosID = (
+			SELECT DocumentoID AS idDocumento,
+			NombreDocumento AS nombreDocumento,
+			RutaDocumento AS rutaDocumento,
+			FechaVigencia AS fechaVigencia,
+			FechaHoraCarga AS fechaHoraCarga,
+			TotalPaginas AS totalPaginas,
+			UsuarioID AS idUsuario,
+			TipoFirmaID AS idTipoFirma,
+			TamanoDocumento AS tamanoDocumento,
+			HashDocumento AS hashDocumento,
+			Orientacion AS orientacion,
+			SistemaOrigen AS sistemaOrigen
+		FROM TBL_DOCUMENTOS
+		WHERE DocumentoID IN (select id from @listOfIDs)
+		FOR JSON AUTO)
+
+	END TRY
+
+	BEGIN CATCH
+		 
+	-- Transaction uncommittable
+		IF (XACT_STATE()) = -1
+		BEGIN
+		  ROLLBACK TRANSACTION;
+		END;
+
+	-- Transaction committable
+		IF (XACT_STATE()) = 1
+		BEGIN
+		  COMMIT TRANSACTION;
+		END;
+
+		SET @Error_Code = ERROR_NUMBER();
+		SET @Error_Desc = ERROR_MESSAGE();
+
+	END CATCH
+
+	BEGIN TRY
+        --limpiamos cursores
+		IF CURSOR_STATUS('global','cDocumentos') >= 0 
+		BEGIN
+			CLOSE cDocumentos
+			DEALLOCATE cDocumentos   
+		END
+		IF CURSOR_STATUS('global','cFirmantes') >= 0 
+		BEGIN
+			CLOSE cFirmantes
+			DEALLOCATE cFirmantes   
+		END
+		IF CURSOR_STATUS('global','cObservadores') >= 0 
+		BEGIN
+			CLOSE cObservadores
+			DEALLOCATE cObservadores   
+		END
+    END TRY
+
+    BEGIN CATCH
+        --no hacemos nada
+    END CATCH
+END;
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_CONSULTA_DOCUMENTOS]
+	@UsuarioID			nvarchar(50),
+	@PsistemaOrigen nvarchar(10),
+	@TocaFirmar			INT OUTPUT
+AS
+
+DECLARE @DocumentoID INT
+DECLARE @UsuarioAux	nvarchar(50)
+DECLARE @CountConcurrentes INT
+
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	
+	/*En esta parte vemos por cada documento si le toca firmar al usuario*/
+	SET @TocaFirmar = 0
+
+	DECLARE cDOCUMENTOSPORFIRMARSEC CURSOR FOR
+		SELECT doc.DocumentoID
+		FROM [FEDI].[dbo].tbl_Documentos doc
+		INNER JOIN [FEDI].[dbo].tbl_Firmantes fir ON fir.DocumentoID = doc.DocumentoID
+		WHERE Posicion IS NOT NULL
+		AND fir.UsuarioID = @UsuarioID
+		AND ( @PsistemaOrigen IS NULL OR doc.SistemaOrigen = @PsistemaOrigen )
+		AND doc.FechaEliminacion IS NULL
+		AND fir.EsObservador IS NULL
+		AND Hash IS NULL;
+
+	OPEN cDOCUMENTOSPORFIRMARSEC
+	FETCH NEXT FROM cDOCUMENTOSPORFIRMARSEC
+	INTO @DocumentoID
+
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		EXEC @TocaFirmar = [dbo].[FN_TOCA_FIRMAR] @DocumentoID, @UsuarioID
+
+		IF @TocaFirmar = 1
+		BEGIN
+			BREAK
+		END
+
+		FETCH NEXT FROM cDOCUMENTOSPORFIRMARSEC   
+		INTO @DocumentoID 
+	END
+	CLOSE cDOCUMENTOSPORFIRMARSEC;  
+	DEALLOCATE cDOCUMENTOSPORFIRMARSEC; 
+
+	DECLARE cDOCUMENTOSPORFIRMARCON CURSOR FOR
+		SELECT COUNT(*) FROM [tbl_Documentos] doc
+		INNER JOIN [tbl_Firmantes] fir ON FIR.DocumentoID = doc.DocumentoID
+		WHERE doc.TipoFirmaID = 2
+		AND fir.UsuarioID = @UsuarioID
+		AND ( @PsistemaOrigen IS NULL OR doc.SistemaOrigen = @PsistemaOrigen )
+		AND doc.FechaEliminacion IS NULL
+		AND fir.EsObservador IS NULL
+		AND fir.Hash IS NULL
+
+	OPEN cDOCUMENTOSPORFIRMARCON
+	FETCH NEXT FROM cDOCUMENTOSPORFIRMARCON
+	INTO @CountConcurrentes
+
+	IF @CountConcurrentes > 0
+	BEGIN
+		SET @TocaFirmar = 1
+	END
+
+	CLOSE cDOCUMENTOSPORFIRMARCON;  
+	DEALLOCATE cDOCUMENTOSPORFIRMARCON; 
+	
+	SELECT doc.DocumentoID, doc.NombreDocumento, doc.RutaDocumento, FORMAT (doc.FechaVigencia, 'dd-MM-yyyy') FechaVigencia,
+	FORMAT (doc.FechaHoraCarga, 'dd-MM-yyyy HH:mm:ss') FechaHoraCarga,
+	FORMAT (doc.FechaHoraCarga, 'dd-MM-yyyy HH:mm:ss.fff') FechaHoraCargaMilis, doc.TotalPaginas, doc.UsuarioID,
+	FORMAT (doc.FechaEliminacion, 'dd-MM-yyyy') FechaEliminacion, cattf.TipoFirmaID, cattf.TipoFirma, catde.DocumentoEstatusID, catde.DocumentoEstatus,
+	catu.UsuarioID, catu.Nombre, catu.ApellidoPaterno, catu.ApellidoMaterno, doc.TamanoDocumento, doc.HashDocumento, doc.Orientacion,
+	(select top (1) FORMAT (HoraFirma, 'dd-MM-yyyy HH:mm:ss') HoraFirma from [FEDI].[dbo].tbl_Firmantes where documentoid = doc.DocumentoID order by HoraFirma desc) fechaUltimaFirma,
+	CASE doc.TipoFirmaID
+		WHEN 1 THEN --Secuencial
+		[dbo].[FN_TOCA_FIRMAR] (doc.DocumentoID, fir.UsuarioID)
+		WHEN 2 THEN --Concurrente
+		(SELECT COUNT(*) FROM tbl_Firmantes
+		WHERE UsuarioID = @UsuarioID
+		AND DocumentoID = doc.DocumentoID
+		AND Hash IS NULL)
+	END TocaFirmar,
+	CASE WHEN fir.Hash IS NULL THEN 0 ELSE 1 END Firmado,
+	fir.EsObservador, doc.SistemaOrigen
+	FROM [FEDI].[dbo].tbl_Documentos doc
+	INNER JOIN [FEDI].[dbo].tbl_Firmantes fir ON fir.DocumentoID = doc.DocumentoID
+	INNER JOIN [FEDI].[dbo].cat_DocumentoEstatus catde ON catde.DocumentoEstatusID = doc.DocumentoEstatusID
+	INNER JOIN [FEDI].[dbo].cat_TipoFirma cattf ON cattf.TipoFirmaID = doc.TipoFirmaID
+	INNER JOIN [FEDI].[dbo].cat_Usuarios catu ON catu.UsuarioID = doc.UsuarioID
+	WHERE fir.UsuarioID = @UsuarioID
+	AND ( @PsistemaOrigen IS NULL OR doc.SistemaOrigen = @PsistemaOrigen )
+	AND FechaEliminacion IS NULL
+	ORDER BY CAST(FechaHoraCarga AS DATETIME) DESC
+
+END;
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	Consulta los usuarios firmantes de un documento
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_CONSULTA_FIRMANTES]
+	@DocumentoID	int
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	
+	SELECT fir.UsuarioID, usufir.Nombre, usufir.ApellidoPaterno, usufir.ApellidoMaterno, fir.Posicion, fir.hash,
+	CASE fir.EsObservador
+	WHEN 1 THEN 'N/A'
+	ELSE FORMAT (fir.FechaFirma, 'dd-MM-yyyy') END FechaFirma,
+	FORMAT (fir.HoraFirma, 'dd-MM-yyyy HH:mm:ss') HoraFirma, doc.NombreDocumento,
+	fir.EsObservador
+	FROM tbl_Documentos doc
+	INNER JOIN tbl_Firmantes fir ON fir.DocumentoID = doc.DocumentoID
+	--INNER JOIN cat_Usuarios usu ON usu.UsuarioID = doc.UsuarioID --Se comenta para aligerar la consulta
+	INNER JOIN cat_Usuarios usufir ON usufir.UsuarioID = fir.UsuarioID
+	WHERE doc.DocumentoID = @DocumentoID 
+	ORDER BY fir.Posicion
+END;
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	Firma el documento con datos del firmante y hash
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_FIRMAR_DOCUMENTO]
+	@DocumentoID		int,
+	@RutaDocumento		nvarchar(100),
+	@UsuarioID			nvarchar(50),
+	@Hash				nvarchar(200),
+	@FechaHoraFirma		nvarchar(19),
+	@Error_Code			int OUTPUT,
+	@Error_Desc			nvarchar(200) OUTPUT
+AS
+
+DECLARE @TipoFirmaID		INT
+DECLARE @DocumentoEstatusID	INT
+DECLARE @UsuarioFirmando	INT
+
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON
+	SET LANGUAGE SPANISH
+	SET XACT_ABORT ON
+
+	BEGIN TRY
+
+		IF NOT EXISTS(SELECT * FROM tbl_Documentos doc INNER JOIN tbl_Firmantes fir ON fir.DocumentoID = doc.DocumentoID
+		WHERE doc.DocumentoID = @DocumentoID AND fir.UsuarioID = @UsuarioID)
+		BEGIN
+			RAISERROR ('No es posible firmar porque no es un usuario firmante.', 16, 1);
+		END
+
+		--Se aparta el documento para el firmante en curso
+		SELECT @UsuarioFirmando = Firmando
+		FROM tbl_Documentos
+		WHERE DocumentoID = @DocumentoID
+		
+		IF @UsuarioFirmando IS NOT NULL
+		BEGIN
+			RAISERROR ('El documento se encuentra en proceso de firma, intente más tarde.', 16, 1);
+		END
+		
+		BEGIN TRANSACTION
+			UPDATE tbl_Documentos SET Firmando = @UsuarioID
+			WHERE DocumentoID = @DocumentoID
+		COMMIT TRANSACTION
+
+		SELECT @TipoFirmaID = tipoFirmaID, @DocumentoEstatusID = documentoEstatusID
+		FROM tbl_Documentos
+		WHERE DocumentoID = @DocumentoID
+		
+		IF @TipoFirmaID = 1 --Secuencial
+		BEGIN
+			
+			DECLARE @PuedeFirmar INT
+			EXEC @PuedeFirmar = [dbo].[FN_VALIDA_POSICION_FIRMANTE] @DocumentoID, @UsuarioID
+
+			IF @PuedeFirmar = 0
+			BEGIN
+				RAISERROR ('La firma no corresponde al orden asignado de los firmantes.', 16, 1);
+			END
+		END
+
+		BEGIN TRANSACTION
+
+		UPDATE tbl_Firmantes SET
+			FechaFirma		= CAST (@FechaHoraFirma AS DATETIME),
+			HoraFirma		= CAST (@FechaHoraFirma AS DATETIME),
+			Hash			= @Hash
+		WHERE DocumentoID	= @DocumentoID
+		AND UsuarioID		= @UsuarioID
+		AND EsObservador	IS NULL
+		
+		--Actualizamos el estatus del Documento
+		DECLARE @DocumentoCompleto INT
+		EXEC @DocumentoCompleto = [dbo].[FN_DOCUMENTO_COMPLETO] @DocumentoID
+		
+		IF @DocumentoEstatusID = 1 AND @DocumentoCompleto = 0 --Pendiente y no completo
+			BEGIN
+				UPDATE tbl_Documentos SET
+				documentoEstatusID = 2 --En proceso
+				WHERE DocumentoID = @DocumentoID
+			END
+
+		ELSE IF @DocumentoEstatusID = 1 AND @DocumentoCompleto = 1 --Pendiente y completo (en caso de que sólo sea una firma)
+			BEGIN
+				UPDATE tbl_Documentos SET
+				documentoEstatusID = 3 --Firmado
+				WHERE DocumentoID = @DocumentoID
+			END
+
+		ELSE IF @DocumentoEstatusID = 2 AND @DocumentoCompleto = 1 --En proceso y completo
+			BEGIN
+				UPDATE tbl_Documentos SET
+				documentoEstatusID = 3 --Firmado
+				WHERE DocumentoID = @DocumentoID
+			END
+
+		COMMIT TRANSACTION
+
+		SET @Error_Code = 0
+
+	END TRY
+
+	BEGIN CATCH
+		 
+	-- Transaction uncommittable
+		IF (XACT_STATE()) = -1
+		BEGIN
+		  ROLLBACK TRANSACTION;
+		END;
+ 
+	-- Transaction committable
+		IF (XACT_STATE()) = 1
+		BEGIN
+		  COMMIT TRANSACTION;
+		END;
+
+		SET @Error_Code = ERROR_NUMBER();
+		SET @Error_Desc = ERROR_MESSAGE();
+	END CATCH
+
+	--Se deja el documento para que otro firmate lo firme
+	BEGIN TRANSACTION
+		UPDATE tbl_Documentos SET Firmando = NULL
+		WHERE DocumentoID = @DocumentoID
+	COMMIT TRANSACTION
+END;
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	Firma el documento con datos del firmante y hash
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_FIRMAR_DOCUMENTOS]
+	@Firmantes			nvarchar(MAX),
+	@Error_Code			int OUTPUT,
+	@Error_Desc			nvarchar(200) OUTPUT
+AS
+
+DECLARE @DocumentoID		INT
+DECLARE @NombreDocumento	nvarchar(100)
+DECLARE @RutaDocumento		nvarchar(100)
+DECLARE @UsuarioID			nvarchar(50)
+DECLARE @Hash				nvarchar(200)
+DECLARE @FechaHoraFirma		nvarchar(19)
+DECLARE @TipoFirmaID		INT
+DECLARE @DocumentoEstatusID	INT
+DECLARE @UsuarioFirmando	nvarchar(50)
+DECLARE @listOfIDsOK		table (id int, nombreDocumento nvarchar(100));
+DECLARE @listOfIDsErr		table (id int, nombreDocumento nvarchar(100));
+
+DECLARE @TranName			VARCHAR(20);  
+SELECT	@TranName =			'trFirmando'; 
+
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON
+	SET LANGUAGE SPANISH
+	SET XACT_ABORT ON
+
+	BEGIN TRY
+		
+		BEGIN TRANSACTION
+
+		DECLARE cFirmantes CURSOR FOR
+		SELECT DocumentoID, NombreDocumento, RutaDocumento, UsuarioID, Hash, FechaHoraFirma
+		FROM OPENJSON ( @Firmantes )  
+		WITH (   
+			DocumentoID			INT					'$.idDocumento',
+			NombreDocumento		VARCHAR(100)		'$.nombreDocumento',
+			RutaDocumento		VARCHAR(100)		'$.rutaDocumento',
+			UsuarioID			VARCHAR(50)			'$.idUsuario',
+			Hash				VARCHAR(200)		'$.hash',
+			FechaHoraFirma		VARCHAR(19)			'$.fechaHoraFirma'
+		)
+
+		OPEN cFirmantes
+		FETCH NEXT FROM cFirmantes INTO @DocumentoID, @NombreDocumento, @RutaDocumento, @UsuarioID, @Hash, @FechaHoraFirma
+		WHILE @@FETCH_STATUS = 0
+
+		BEGIN
+		
+			IF NOT EXISTS(SELECT * FROM tbl_Documentos doc INNER JOIN tbl_Firmantes fir ON fir.DocumentoID = doc.DocumentoID
+			WHERE doc.DocumentoID = @DocumentoID AND fir.UsuarioID = @UsuarioID)
+			BEGIN
+				INSERT @listOfIDsErr(id, nombreDocumento) values(@DocumentoID, @NombreDocumento);
+				RAISERROR ('No es posible firmar porque no es un usuario firmante.', 16, 1);
+			END
+			
+			--Se aparta el documento para el firmante en curso
+			SELECT @UsuarioFirmando = Firmando
+			FROM tbl_Documentos
+			WHERE DocumentoID = @DocumentoID
+
+			IF @UsuarioFirmando IS NOT NULL
+			BEGIN
+				INSERT @listOfIDsErr(id, nombreDocumento) values(@DocumentoID, @NombreDocumento);
+				RAISERROR ('El documento se encuentra en proceso de firma, intente más tarde.', 16, 1);
+			END
+		
+			BEGIN TRANSACTION @TranName
+				UPDATE tbl_Documentos SET Firmando = @UsuarioID
+				WHERE DocumentoID = @DocumentoID
+			COMMIT TRANSACTION @TranName
+
+			SELECT @TipoFirmaID = tipoFirmaID, @DocumentoEstatusID = documentoEstatusID
+			FROM tbl_Documentos
+			WHERE DocumentoID = @DocumentoID
+
+			IF @TipoFirmaID = 1 --Secuencial
+			BEGIN
+			
+				DECLARE @PuedeFirmar INT
+				EXEC @PuedeFirmar = [dbo].[FN_VALIDA_POSICION_FIRMANTE] @DocumentoID, @UsuarioID
+
+				IF @PuedeFirmar = 0
+				BEGIN
+					INSERT @listOfIDsErr(id, nombreDocumento) values(@DocumentoID, @NombreDocumento);
+					RAISERROR ('La firma no corresponde al orden asignado de los firmantes.', 16, 1);
+				END
+			END
+
+			--BEGIN TRANSACTION
+
+			UPDATE tbl_Firmantes SET
+				FechaFirma		= CAST (@FechaHoraFirma AS DATETIME),
+				HoraFirma		= CAST (@FechaHoraFirma AS DATETIME),
+				Hash			= @Hash
+			WHERE DocumentoID	= @DocumentoID
+			AND UsuarioID		= @UsuarioID
+			AND EsObservador	IS NULL
+
+			--Actualizamos el estatus del Documento
+			DECLARE @DocumentoCompleto INT
+			EXEC @DocumentoCompleto = [dbo].[FN_DOCUMENTO_COMPLETO] @DocumentoID
+		
+			IF @DocumentoEstatusID = 1 AND @DocumentoCompleto = 0 --Pendiente y no completo
+				BEGIN
+					UPDATE tbl_Documentos SET
+					documentoEstatusID = 2 --En proceso
+					WHERE DocumentoID = @DocumentoID
+				END
+
+			ELSE IF @DocumentoEstatusID = 1 AND @DocumentoCompleto = 1 --Pendiente y completo (en caso de que sólo sea una firma)
+				BEGIN
+					UPDATE tbl_Documentos SET
+					documentoEstatusID = 3 --Firmado
+					WHERE DocumentoID = @DocumentoID
+				END
+
+			ELSE IF @DocumentoEstatusID = 2 AND @DocumentoCompleto = 1 --En proceso y completo
+				BEGIN
+					UPDATE tbl_Documentos SET
+					documentoEstatusID = 3 --Firmado
+					WHERE DocumentoID = @DocumentoID
+				END
+
+			--COMMIT TRANSACTION
+
+			--Se deja el documento para que otro firmate lo firme
+			BEGIN TRANSACTION @TranName
+				UPDATE tbl_Documentos SET Firmando = NULL
+				WHERE DocumentoID = @DocumentoID
+			COMMIT TRANSACTION @TranName
+
+			
+			INSERT @listOfIDsOk(id, nombreDocumento) values(@DocumentoID, @NombreDocumento);
+			FETCH NEXT FROM cFirmantes INTO @DocumentoID, @NombreDocumento, @RutaDocumento, @UsuarioID, @Hash, @FechaHoraFirma
+		
+		END;
+
+		SET @Error_Code = 0
+		COMMIT TRANSACTION
+
+	END TRY
+
+	BEGIN CATCH
+		 
+	-- Transaction uncommittable
+		IF (XACT_STATE()) = -1
+		BEGIN
+		  ROLLBACK TRANSACTION;
+		END;
+ 
+	-- Transaction committable
+		IF (XACT_STATE()) = 1
+		BEGIN
+		  COMMIT TRANSACTION;
+		END;
+
+		SET @Error_Code = ERROR_NUMBER();
+		SET @Error_Desc = ERROR_MESSAGE();
+	END CATCH
+
+	BEGIN TRY
+        --limpiamos cursor        
+        CLOSE cFirmantes
+        DEALLOCATE cFirmantes
+    END TRY
+
+    BEGIN CATCH
+        --no hacemos nada
+    END CATCH
+END;
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_CONSULTA_USUARIOS]
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	SELECT * FROM CAT_USUARIOS;
+END;
