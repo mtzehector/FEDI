@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/fedi-srv/fedi-srv" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/fedi-web/fedi-web" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/srvAutoRegistroPerito/srvAutoRegistroPerito" vcs="Git" />
+  </component>
+</project>
