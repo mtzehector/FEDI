@@ -1,0 +1,31 @@
+[INFO] Scanning for projects...
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for fedi.ift.org.mx:FEDIPortalWeb:war:1.0
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.poi:poi-ooxml:jar -> version 3.16 vs 3.15 @ line 505, column 21
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[INFO] 
+[INFO] -------------------< fedi.ift.org.mx:FEDIPortalWeb >--------------------
+[INFO] Building FEDIPortalWeb 1.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ war ]---------------------------------
+[WARNING] The artifact xmlbeans:xmlbeans:jar:2.3.0 has been relocated to org.apache.xmlbeans:xmlbeans:jar:2.3.0
+[INFO] 
+[INFO] --- dependency:2.8:tree (default-cli) @ FEDIPortalWeb ---
+[WARNING] While downloading xmlbeans:xmlbeans:2.3.0
+  This artifact has been relocated to org.apache.xmlbeans:xmlbeans:2.3.0.
+
+
+[INFO] fedi.ift.org.mx:FEDIPortalWeb:war:1.0
+[INFO] +- org.bouncycastle:bcprov-jdk15on:jar:1.54:compile
+[INFO] \- org.bouncycastle:bcpkix-jdk15on:jar:1.54:compile
+[INFO]    \- (org.bouncycastle:bcprov-jdk15on:jar:1.54:compile - omitted for duplicate)
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.906 s
+[INFO] Finished at: 2026-02-17T01:45:09-06:00
+[INFO] ------------------------------------------------------------------------

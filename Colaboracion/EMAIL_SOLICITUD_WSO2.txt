@@ -1,0 +1,141 @@
+ASUNTO: Solicitud de suscripción API Manager para FEDI Portal Web (Migración IFT→CRT)
+
+========================================================================
+
+Estimado equipo de WSO2/API Manager,
+
+Solicitamos su apoyo para configurar las siguientes suscripciones:
+
+========================================================================
+1. API LDAP - Directorio de Usuarios
+========================================================================
+
+DESARROLLO:
+  API: ldp.inf.ift.org.mx
+  Versión: v1.0
+  URL Base: https://apimanager-dev.crt.gob.mx/ldp.inf.ift.org.mx/v1.0/
+  Cliente: FEDI Portal Web - DEV
+  Client ID: TfqspBaeXdxB6QtIBGWA3eLi2L4a
+  Token: Basic VGZxc3BCYWVYZHhCNlF0SUJHV0EzZUxpMkw0YTpWTUdUVHhqUDVkMl91eFoxdW5uSVBSTGpmZ01h
+
+  Endpoint requerido:
+    POST /OBTENER_INFO
+       Content-Type: application/json
+       Body: {"user": "usuario_id"}
+       Función: Obtener información detallada del usuario (nombre, email, puesto)
+
+QA:
+  API: ldp.inf.ift.org.mx
+  Versión: v3.0
+  URL Base: https://apimanager-qa.crt.gob.mx/ldp.inf.ift.org.mx/v3.0/
+  Client ID: Wql1PLvjoe8zSD_4qSEb24HS9fAa
+  Token: Basic V3FsMVBMdmpvZTh6U0RfNHFTRWIyNEhTOWZBYTpFeExrVEFsOEY0eEkxZ1BjaHh5Rk5TblFYQlFh
+
+  Endpoint requerido:
+    POST /OBTENER_INFO
+
+PRODUCCIÓN:
+  API: ldp.inf.ift.org.mx
+  Versión: v2.0
+  URL Base: https://apimanager.crt.gob.mx/ldp.inf.ift.org.mx/v2.0/
+  Client ID: MJ9fuGNxCykvoDNJQ8WnjNh5kKYa
+  Token: Basic TUo5ZnVHTnhDeWt2b0ROSlE4V25qTmg1a0tZYTpLWndCUXFHNHNibmRqVEI2RnpraEdnUzdNcnNh
+
+  Endpoint requerido:
+    POST /OBTENER_INFO
+
+Error actual en DEV:
+{
+  "code": "900908",
+  "message": "Resource forbidden",
+  "description": "API Subscription validation failed"
+}
+
+========================================================================
+2. API Bitácora - Registro de Auditoría
+========================================================================
+
+DESARROLLO:
+  API: bit.reg.ift.org.mx
+  URL Base: http://apimanager-dev.crt.gob.mx/bit.reg.ift.org.mx/registroBitacora/
+  Cliente: FEDI Portal Web - DEV (mismo token que arriba)
+
+  Endpoint requerido:
+    POST /registroBitacora/
+       (sin versión en path)
+       Content-Type: application/json
+       Body: Objeto Registro con información del evento
+       Función: Registro de eventos de auditoría para cumplimiento normativo
+
+QA:
+  URL Base: https://apimanager-qa.crt.gob.mx/bit.reg.ift.org.mx/registroBitacora/
+  Cliente: FEDI Portal Web - QA (token arriba)
+
+  Endpoint requerido:
+    POST /registroBitacora/
+
+PRODUCCIÓN:
+  URL Base: https://apimanager.crt.gob.mx/bit.reg.ift.org.mx/registroBitacora/
+  Cliente: FEDI Portal Web - PROD (token arriba)
+
+  Endpoint requerido:
+    POST /registroBitacora/
+
+========================================================================
+3. API Notificaciones - Envío de correos
+========================================================================
+
+DESARROLLO:
+  API: REGISTRO/CORREOS/FEDI
+  Versión: v1.0
+  URL Base: https://apimanager-dev.crt.gob.mx/REGISTRO/CORREOS/FEDI/v1.0/
+  Cliente: FEDI Portal Web - DEV (mismo token)
+
+  Endpoint requerido:
+    POST /firmaUsuarios/
+       Content-Type: application/json
+       Función: Notificaciones de documentos pendientes de firma
+
+QA:
+  Versión: v3.0
+  URL Base: https://apimanager-qa.crt.gob.mx/REGISTRO/CORREOS/FEDI/v3.0/
+  Cliente: FEDI Portal Web - QA
+
+  Endpoint requerido:
+    POST /firmaUsuarios/
+
+PRODUCCIÓN:
+  Versión: v2.0
+  URL Base: https://apimanager.crt.gob.mx/REGISTRO/CORREOS/FEDI/v2.0/
+  Cliente: FEDI Portal Web - PROD
+
+  Endpoint requerido:
+    POST /firmaUsuarios/
+
+
+
+========================================================================
+IMPACTO ACTUAL
+========================================================================
+
+Estado de funcionalidades:
+ Autenticación de usuarios (funciona)
+ Consulta de catálogo de documentos (funciona)
+ Obtención de información detallada LDAP (bloqueado por 403)
+ Sección de carga de documentos (depende de LDAP)
+ Registro de bitácora (no verificado)
+ Envío de notificaciones (no verificado)
+
+
+
+En caso de que ya estén suscritos los endpoints, indicarnos:
+   - La forma correcta de consumirlos
+   - Si hay alguna diferencia en headers o autenticación requerida
+   - Si las versiones de API han cambiado
+
+
+Agradecemos su apoyo en este proceso de migración.
+
+Quedamos atentos a sus comentarios y disponibles para cualquier aclaración.
+
+Saludos cordiales

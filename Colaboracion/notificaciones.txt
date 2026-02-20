@@ -1,0 +1,288 @@
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	Obtiene un solo registro con los datos del documento, quién lo cargó y los firmantes quienes faltan de firmar
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_NOTIFICACION_CARGA_DOCUMENTO]
+	@DocumentoID_nv		NVARCHAR(50)
+AS
+DECLARE @DocumentoID	INTEGER
+BEGIN
+	SET NOCOUNT ON;
+
+	SELECT @DocumentoID = CAST(@DocumentoID_NV AS int);
+	
+	Select doc.DocumentoID, doc.NombreDocumento,
+	REPLACE(
+	REPLACE(
+	REPLACE(
+	REPLACE(
+	CONCAT(doc.UsuarioID, ', ', STRING_AGG (fir.UsuarioID, ', ') WITHIN GROUP (ORDER BY fir.Posicion))
+	, 'dgticexterno.170@ift.org.mx', 'oscar.aldana@planetmedia.com.mx')
+	, 'dgticexterno.273@ift.org.mx', 'guadalupe.marin@planetmedia.com.mx')
+	, 'dgticexterno.278@ift.org.mx', 'javier.vega@planetmedia.com.mx')
+	, 'dgticexterno.279@ift.org.mx', 'sergio.andres@planetmedia.com.mx')
+	AS Destinatarios
+	FROM tbl_Documentos doc
+	INNER JOIN tbl_Firmantes fir ON fir.DocumentoID = doc.DocumentoID
+	WHERE doc.documentoID = @DocumentoID
+	AND fir.Hash IS NULL
+	GROUP BY doc.DocumentoID, doc.NombreDocumento, doc.UsuarioID;
+	
+END;
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_NOTIFICACION_DOCUMENTO_FIRMADO]
+	@DocumentoID_nv		NVARCHAR(50)
+AS
+DECLARE @DocumentoID	INTEGER
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+	SELECT @DocumentoID = CAST(@DocumentoID_NV AS int);
+
+	DECLARE @DocumentoCompleto INTEGER
+	EXEC @DocumentoCompleto = [dbo].[FN_DOCUMENTO_COMPLETO] @DocumentoID
+
+	IF @DocumentoCompleto = 1
+	BEGIN
+		SELECT doc.DocumentoID, doc.NombreDocumento,
+		CONCAT(doc.UsuarioID, ',', fir.UsuarioID)
+		FROM tbl_Documentos doc
+		INNER JOIN tbl_Firmantes fir ON fir.DocumentoID = doc.DocumentoID AND fir.EsObservador = 1
+		WHERE doc.DocumentoID = @DocumentoID
+	END
+
+	RETURN
+END;
+
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	Obtiene un solo registro con los destinatarios y el nombre del documento secuencial o concurrente
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_NOTIFICACION_FIRMA_DOCUMENTO]
+	@DocumentoID_nv		NVARCHAR(50)
+AS
+
+DECLARE @DocumentoID	INTEGER
+
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+	SELECT @DocumentoID = CAST(@DocumentoID_NV AS int);
+
+	SELECT doc.DocumentoID, doc.NombreDocumento,REPLACE(
+	REPLACE(
+	REPLACE(
+	REPLACE(
+	STRING_AGG (fir.UsuarioID, ', ') WITHIN GROUP (ORDER BY fir.Posicion)
+	, 'dgticexterno.170@ift.org.mx', 'oscar.aldana@planetmedia.com.mx')
+	, 'dgticexterno.273@ift.org.mx', 'guadalupe.marin@planetmedia.com.mx')
+	, 'dgticexterno.278@ift.org.mx', 'javier.vega@planetmedia.com.mx')
+	, 'dgticexterno.279@ift.org.mx', 'sergio.andres@planetmedia.com.mx')
+	AS Destinatarios
+	FROM tbl_Documentos doc
+	INNER JOIN tbl_Firmantes fir ON fir.DocumentoID = doc.DocumentoID
+	WHERE doc.DocumentoID = @DocumentoID
+	GROUP BY doc.DocumentoID, doc.NombreDocumento
+
+	RETURN
+END;
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	Consulta la lista de firmantes que ya hayan firmado un documento concurrente
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_NOTIFICACION_FIRMADOS_CONCURRENTE]
+	@DocumentoID_nv		NVARCHAR(50)
+AS
+
+DECLARE @DocumentoID	INTEGER
+
+BEGIN
+	SET NOCOUNT ON;
+
+	SELECT @DocumentoID = CAST(@DocumentoID_NV AS int);
+
+    SELECT CONCAT(usufir.Nombre, ' ', usufir.ApellidoPaterno, ' ', usufir.ApellidoMaterno) Nombre
+	FROM tbl_Documentos doc
+	INNER JOIN tbl_Firmantes fir ON fir.DocumentoID = doc.DocumentoID
+	INNER JOIN cat_Usuarios usufir ON usufir.UsuarioID = fir.UsuarioID
+	WHERE doc.DocumentoID = @DocumentoID
+	AND doc.TipoFirmaID = 2 --Concurrente
+	AND fir.Hash IS NOT NULL
+	AND fir.EsObservador IS NULL
+	ORDER BY fir.Posicion
+
+END;
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	Consulta la lista de firmantes de un documento concurrente
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_NOTIFICACION_FIRMANTES_CONCURRENTE]
+	@DocumentoID_nv		NVARCHAR(50)
+AS
+
+DECLARE @DocumentoID	INTEGER
+
+BEGIN
+	SET NOCOUNT ON;
+
+	SELECT @DocumentoID = CAST(@DocumentoID_NV AS int);
+
+    SELECT CONCAT(usufir.Nombre, ' ', usufir.ApellidoPaterno, ' ', usufir.ApellidoMaterno) Nombre
+	FROM tbl_Documentos doc
+	INNER JOIN tbl_Firmantes fir ON fir.DocumentoID = doc.DocumentoID
+	INNER JOIN cat_Usuarios usufir ON usufir.UsuarioID = fir.UsuarioID
+	WHERE doc.DocumentoID = @DocumentoID
+	AND doc.TipoFirmaID = 2 --Concurrente
+	AND fir.EsObservador IS NULL
+	ORDER BY fir.Posicion
+
+END;
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	Consulta la lista de firmantes de un documento secuencial
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_NOTIFICACION_FIRMANTES_SECUENCIAL]
+	@DocumentoID_nv		NVARCHAR(50)
+AS
+
+DECLARE @DocumentoID	INTEGER
+
+BEGIN
+	SET NOCOUNT ON;
+
+	SELECT @DocumentoID = CAST(@DocumentoID_NV AS int);
+
+	SELECT CONCAT(fir.Posicion, '. ', usufir.Nombre, ' ', usufir.ApellidoPaterno, ' ', usufir.ApellidoMaterno) Nombre
+	FROM tbl_Documentos doc
+	INNER JOIN tbl_Firmantes fir ON fir.DocumentoID = doc.DocumentoID
+	INNER JOIN cat_Usuarios usufir ON usufir.UsuarioID = fir.UsuarioID
+	WHERE doc.DocumentoID = @DocumentoID
+	AND doc.TipoFirmaID = 1 --Secuencial
+	AND fir.EsObservador IS NULL
+	ORDER BY fir.Posicion
+
+	RETURN
+END;
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	Obtiene un solo registro con los datos del documento, quién lo cargó y los firmantes quienes faltan de firmar
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_NOTIFICACION_OBSERVADORES]
+	@DocumentoID_nv		NVARCHAR(50)
+AS
+DECLARE @DocumentoID	INTEGER
+BEGIN
+	SET NOCOUNT ON;
+
+	SELECT @DocumentoID = CAST(@DocumentoID_NV AS int);
+
+    SELECT CONCAT(usufir.Nombre, ' ', usufir.ApellidoPaterno, ' ', usufir.ApellidoMaterno) NombreObservador
+	FROM tbl_Documentos doc
+	INNER JOIN tbl_Firmantes obs ON obs.DocumentoID = doc.DocumentoID
+	INNER JOIN cat_Usuarios usufir ON usufir.UsuarioID = obs.UsuarioID
+	WHERE doc.DocumentoID = @DocumentoID
+	AND obs.EsObservador = 1
+	ORDER BY obs.Posicion;
+	
+END;
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	Consulta de documentos que están a 5 días de ser eliminados antes de los 30 días naturales y qué usuarios lo subieron
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_NOTIFICACION_RECORDATORIO_ELIMINACION]
+	@PSistemaOrigen nvarchar(10) = null
+AS
+BEGIN
+
+	SET NOCOUNT ON;
+	
+	SELECT doc.DocumentoID, doc.NombreDocumento,
+
+	CASE WHEN doc.UsuarioID = (SELECT UsuarioID FROM tbl_Firmantes WHERE UsuarioID = doc.UsuarioID AND DocumentoID = doc.DocumentoID)
+	THEN --Si el que cargó el documento es firmante no lo repetimos en los destinatarios
+		REPLACE(
+		REPLACE(
+		REPLACE(
+		REPLACE(
+		STRING_AGG (fir.UsuarioID, ', ') WITHIN GROUP (ORDER BY fir.Posicion)
+		, 'dgticexterno.170@ift.org.mx', 'oscar.aldana@planetmedia.com.mx')
+		, 'dgticexterno.273@ift.org.mx', 'guadalupe.marin@planetmedia.com.mx')
+		, 'dgticexterno.278@ift.org.mx', 'javier.vega@planetmedia.com.mx')
+		, 'dgticexterno.279@ift.org.mx', 'sergio.andres@planetmedia.com.mx')
+	ELSE--Si el que cargó el documento no es firmante lo agregamos a los destinatarios
+		REPLACE(
+		REPLACE(
+		REPLACE(
+		REPLACE(
+	CONCAT(doc.UsuarioID, ', ', STRING_AGG (fir.UsuarioID, ', ') WITHIN GROUP (ORDER BY fir.Posicion))
+		, 'dgticexterno.170@ift.org.mx', 'oscar.aldana@planetmedia.com.mx')
+		, 'dgticexterno.273@ift.org.mx', 'guadalupe.marin@planetmedia.com.mx')
+		, 'dgticexterno.278@ift.org.mx', 'javier.vega@planetmedia.com.mx')
+		, 'dgticexterno.279@ift.org.mx', 'sergio.andres@planetmedia.com.mx')
+	END AS Destinatarios
+	FROM tbl_documentos doc
+	INNER JOIN tbl_Firmantes fir ON fir.DocumentoID = doc.DocumentoID
+	where doc.FechaEliminacion IS NULL
+	AND doc.DocumentoEstatusID IN (1, 2) --Pendientes o en proceso
+	AND CAST(doc.FechaHoraCarga AS DATE) = CAST(dateadd(DAY, -25, SYSDATETIME()) AS DATE)
+	AND fir.Hash IS NULL
+	AND (@PSistemaOrigen IS NULL OR doc.SistemaOrigen=@PSistemaOrigen)
+	GROUP BY doc.DocumentoID, doc.NombreDocumento, doc.UsuarioID;
+
+END;
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	Consulta el siguiente firmante de un documento con tipo de firma secuencial
+--				para notificarle que es el siguiente en firmar
+-- =============================================
+CREATE     PROCEDURE [dbo].[SP_NOTIFICACION_SIGUIENTE_FIRMANTE]
+	@DocumentoID_nv		NVARCHAR(50)
+AS
+DECLARE @DocumentoID	INTEGER
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+	SELECT @DocumentoID = CAST(@DocumentoID_NV AS int);
+
+	DECLARE @UsuarioID NVARCHAR(50)
+	EXEC @UsuarioID = [dbo].[FN_SIGUIENTE_FIRMANTE] @DocumentoID
+
+	Select doc.DocumentoID, doc.NombreDocumento,
+	STRING_AGG (fir.UsuarioID, ', ') WITHIN GROUP (ORDER BY fir.Posicion) as Destinatarios,
+	CONCAT(@UsuarioID, ',', (SELECT STRING_AGG(fir.UsuarioID, ',')
+				FROM tbl_Documentos doc
+				INNER JOIN tbl_Firmantes fir ON fir.DocumentoID = doc.DocumentoID AND fir.EsObservador = 1
+				AND doc.DocumentoID = @DocumentoID))
+	AS Destinatarios2	
+	FROM tbl_Documentos doc
+	INNER JOIN tbl_Firmantes fir ON fir.DocumentoID = doc.DocumentoID
+	WHERE doc.DocumentoID = @DocumentoID
+	AND doc.TipoFirmaID = 1 --Secuencial
+	AND fir.FechaFirma is null
+	GROUP BY doc.DocumentoID, doc.NombreDocumento
+
+	RETURN
+END;

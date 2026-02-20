@@ -1,0 +1,49 @@
+adan.perez@ift.org.mx	ADAN DAVID PEREZ RODRIGUEZ			
+alberto.martinez@ift.org.mx	ALBERTO MARTINEZ PEREZ			
+aldo.rojano@ift.org.mx	ALDO MAURICIO ROJANO MARTINEZ			
+alfredo.tellez@ift.org.mx	ALFREDO TELLEZ VERGARA			
+ana.caballero@ift.org.mx	ANA LUISA CABALLERO CHAVEZ			
+ana.cruz@ift.org.mx	ANA LUISA CRUZ MEDINA			
+arturo.tenorio@ift.org.mx	 JOSE ARTURO TENORIO  PEREZ			
+carlos.hernandez@ift.org.mx	CARLOS ALBERTO HERNANDEZ SANCHEZ			
+carlos.sanchezb@ift.org.mx	CARLOS JUAN DE DIOS SANCHEZ BRETON			
+christian.rea@ift.org.mx	CHRISTIAN ISRAEL REA TIZCAREÑO			
+cintia.romero@ift.org.mx	CINTIA JOSELYN ROMERO LOA			
+david.alvarez@ift.org.mx	DAVID LEON ALVAREZ GOMEZ			
+deid.ext33@crt.gob.mx	HECTOR MARTINEZ ESPINOSA			
+dgtic.dds.ext016@ift.org.mx	VICTOR HUGO SANCHEZ CASTILLO			
+dgtic.dds.ext023@ift.org.mx	HECTOR MARTINEZ ESPINOSA			
+dgtic.dds.ext070@ift.org.mx	ALEJANDRO GONZALEZ BARBA			
+dgtic.dds.ext117@ift.org.mx	JOSE ORNELAS PAREDES			
+dgtic.dds.ext129@ift.org.mx	SILVIA LUCINA SANCHEZ RODRIGUEZ			
+dgtic.dds.ext149@ift.org.mx	CRISTOPHER ESPARZA CUEVAS			
+dgtic.dds.ext175@ift.org.mx	JOSE ANTONIO MATEO JIMENEZ			
+dgtic.dit.ext037@ift.org.mx	JUAN PABLO RAMOS HUERTA			
+dgtic.dsi.ext003@ift.org.mx	OSVALDO ZAMUDIO BARRIOS			
+dgticexterno.107@ift.org.mx	LISSET GEORGINA MORALES MALDONADO			
+dgticexterno.123@ift.org.mx	MIGUEL ROMERO SANCHEZ			
+dgticexterno.170@ift.org.mx	OSCAR OSWALDO ALDANA FAUSTINOS			
+dgticexterno.198@ift.org.mx	ADRIANA ESPINOZA AQUINO			
+dgticexterno.244@ift.org.mx	MARIBEL MONSERRAT GARCIA PAEZ			
+dgticexterno.273@ift.org.mx	GUADALUPE MARIN FLORES			
+dgticexterno.278@ift.org.mx	JOSE JAVIER VEGA ROJAS			
+dgticexterno.279@ift.org.mx	SERGIO ANDRES HERNANDEZ GONZALEZ			
+dgticexterno.281@ift.org.mx	BETHEL YENEVID SOSA LAGUNAS			
+dgticexterno.400@ift.org.mx	ERNESTO MARTINEZ ESPINOSA			
+dgticexterno.402@ift.org.mx	JOSE VICTOR SOLACHE GALICIA			
+ezequiel.villalobos@ift.org.mx	EZEQUIEL VILLALOBOS CALDERAS			
+fabiola.milano@ift.org.mx	FABIOLA JOSE MILANO ABREU			
+guadalupe.luis@ift.org.mx	GUADALUPE LUIS CRUZ			
+guadalupe.marin@gmail.com	GUADALUPE MARIN FLORES			
+javier.pacheco@ift.org.mx	JAVIER JOSE PACHECO CAUICH			
+javier.vega@planetmedia.com.mx	JOSE JAVIER VEGA ROJAS			
+jorge.andere@ift.org.mx	JORGE LUIS ANDERE REYES			
+jose.bracamontes@ift.org.mx	JOSE JUAN BRACAMONTES ZAPIEN			
+jose.meza@ift.org.mx	JOSE MEZA ACOSTA			
+juan.ledezma@ift.org.mx	JUAN LEDEZMA MOTA			
+luis.baltierra@ift.org.mx	LUIS SERGIO BALTIERRA ESTRELLA			
+manuel.samano@ift.org.mx	JOSE MANUEL SAMANO FABIAN			
+oscar.aldana@planetmedia.com.mx	OSCAR OSWALDO ALDANA FAUSTINOS			
+sergio.andres@planetmedia.com.mx	SERGIO ANDRES HERNANDEZ GONZALEZ			
+sergio.rivera@ift.org.mx	SERGIO RIVERA ROMERO			
+sergio.rosales@ift.org.mx	SERGIO ROSALES MARTINEZ			
